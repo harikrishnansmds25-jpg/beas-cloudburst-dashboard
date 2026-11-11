@@ -12,7 +12,7 @@
   --p1:#cde2fb; --p2:#9ec5f4; --p3:#6da7ec; --p4:#3987e5; --p5:#256abf; --p6:#184f95; --p7:#0d366b;
   --z-low:#f9dcc8; --z-mod:#ee9661; --z-high:#b54318; --hot:#c8402a; --hot2:#e98463; --cold:#3d78c4; --ns:#dfe3e6;
   --obs:#111c24; --track:#c0392b; --arrow:#26343e; --good:#1e7d4f; --warn:#b26b00;
-  --tiles:none; --tilebg:#e8ecee;
+  --tiles:none; --tilebg:#e8ecee; --on-high:#ffffff; --on-mod:#1b0d05;
   --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif; --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif; --mono:"IBM Plex Mono",Consolas,monospace;
   color-scheme:light;
 }
@@ -20,12 +20,12 @@
   --paper:#0e151a; --panel:#152029; --ink:#e4ecf0; --ink-2:#a3b3bd; --ink-3:#7b8c97; --line:#26353f; --accent:#43aacb; --accent-ink:#06141b;
   --p1:#18304f; --p2:#1c4777; --p3:#22609f; --p4:#3987e5; --p5:#6da7ec; --p6:#9ec5f4; --p7:#d3e6fc;
   --z-low:#4a3326; --z-mod:#b8683b; --z-high:#f08a55; --hot:#ef6b52; --hot2:#a8503c; --cold:#5d9be0; --ns:#2b3943;
-  --obs:#f4f7f9; --track:#ff7a6b; --arrow:#d7e2e8; --tiles:invert(1) hue-rotate(180deg) brightness(.9) contrast(.85) saturate(.55); --tilebg:#1b262e; color-scheme:dark; }}
+  --obs:#f4f7f9; --track:#ff7a6b; --arrow:#d7e2e8; --tiles:invert(1) hue-rotate(180deg) brightness(.9) contrast(.85) saturate(.55); --tilebg:#1b262e; --on-high:#1a0b04; color-scheme:dark; }}
 :root[data-theme="dark"]{
   --paper:#0e151a; --panel:#152029; --ink:#e4ecf0; --ink-2:#a3b3bd; --ink-3:#7b8c97; --line:#26353f; --accent:#43aacb; --accent-ink:#06141b;
   --p1:#18304f; --p2:#1c4777; --p3:#22609f; --p4:#3987e5; --p5:#6da7ec; --p6:#9ec5f4; --p7:#d3e6fc;
   --z-low:#4a3326; --z-mod:#b8683b; --z-high:#f08a55; --hot:#ef6b52; --hot2:#a8503c; --cold:#5d9be0; --ns:#2b3943;
-  --obs:#f4f7f9; --track:#ff7a6b; --arrow:#d7e2e8; --tiles:invert(1) hue-rotate(180deg) brightness(.9) contrast(.85) saturate(.55); --tilebg:#1b262e; color-scheme:dark; }
+  --obs:#f4f7f9; --track:#ff7a6b; --arrow:#d7e2e8; --tiles:invert(1) hue-rotate(180deg) brightness(.9) contrast(.85) saturate(.55); --tilebg:#1b262e; --on-high:#1a0b04; color-scheme:dark; }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 32px}
@@ -106,6 +106,16 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .chip.alert{background:var(--z-high);border-color:var(--z-high);color:#fff}
 .chip.watch{background:var(--z-mod);border-color:var(--z-mod);color:#1b0d05}
 .chip.calm{background:transparent}
+.pred{display:grid;gap:8px}
+.pv{border:1px solid var(--line);border-radius:6px;padding:10px 12px;display:grid;gap:3px}
+.pv .pl{font:500 .72rem/1.2 var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3)}
+.pv .pvv{font:600 1.4rem/1.1 var(--display);letter-spacing:.02em}
+.pv .pd{font-size:.8rem;color:var(--ink-2)}
+.pv.yes.cb{background:var(--z-high);border-color:var(--z-high);color:var(--on-high)}
+.pv.yes.ex{background:var(--z-mod);border-color:var(--z-mod);color:var(--on-mod)}
+.pv.yes .pl,.pv.yes .pd{color:inherit;opacity:.9}
+#bscore td.n b{font-weight:600}
+#bscore td.n,#bscore th.n{white-space:nowrap}
 .kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .kv div{display:grid;gap:1px;border-top:1px solid var(--line);padding-top:6px}
 .kv b{font:500 1.15rem/1.1 var(--mono);font-variant-numeric:tabular-nums}
@@ -170,10 +180,13 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
 
     <aside class="panel bulletin" aria-live="polite">
       <div><div class="eyebrow">Daily bulletin · IMD day 08:30 IST to 08:30 IST</div><div class="bdate" id="bdate"></div></div>
+      <div class="pred" id="bpred" aria-label="Machine-learning prediction for this day"></div>
       <div class="chips" id="bchips"></div>
       <div class="kv" id="bkv"></div>
       <div><h3>Highest-risk cells</h3><div class="scroll"><table id="btable"></table></div></div>
       <p class="note" id="bnote"></p>
+      <div><h3 id="bscoreh">Season scorecard</h3><div class="scroll"><table id="bscore"></table></div>
+        <p class="note">How often the predictions were right over the whole monsoon. Hit rate: share of squares that got the rain and were flagged. False-alarm ratio: share of flags where that rain did not come. Days caught: heavy-rain days on which at least one square was flagged.</p></div>
     </aside>
   </section>
 
@@ -393,7 +406,11 @@ function bulletin(){const d=state.day,dec=DEC[state.mode];const day=new Date(dat
   const obsH=rows.filter(o=>o.r>=64.5).length,obsV=rows.filter(o=>o.r>=115.6).length;
   const chip=(t,c)=>`<span class="chip ${c}">${t}</span>`;
   const unusual=D.cells.filter((c,i)=>(val(relField('v'),d,i)||0)>=980).length;
-  $('#bchips').innerHTML=(predV?chip(`Cloudburst-type risk · ${predV} cells`,'alert'):'')+(predH?chip(`Extreme-rain risk · ${predH} cells`,'watch'):'')+(unusual?chip(`Unusual for ${unusual} cells (≥98th pct of their normal)`,'watch'):'')+(!predH&&!predV&&!unusual?chip('No cell above decision threshold','calm'):'')+chip(state.mode==='same'?'Same-day model':'24 h-ahead model','calm');
+  $('#bchips').innerHTML=(unusual?chip(`Unusual for ${unusual} squares (≥98th pct of their normal)`,'watch'):'')+chip(state.mode==='same'?'Same-day model':'24 h-ahead model · uses weather of the day before','calm');
+  const verdict=(cls,label,t,thr,cut)=>{const pk=t==='h'?'ph':'pv',pred=rows.filter(o=>o[pk]>=thr).length,obs=rows.filter(o=>o.r>=cut).length,hit=rows.filter(o=>o.r>=cut&&o[pk]>=thr).length;
+    return `<div class="pv ${pred?'yes '+cls:''}"><span class="pl">${label}</span><span class="pvv">${pred?`PREDICTED · ${pred} of ${NC} squares`:'NOT PREDICTED'}</span>`+
+      `<span class="pd">Alarm level ${(thr*100).toFixed(1)}% · IMD observed it in ${obs} square${obs===1?'':'s'}${pred||obs?` · correct ${hit}, missed ${obs-hit}, false alarms ${pred-hit}`:''}</span></div>`;};
+  $('#bpred').innerHTML=verdict('cb','Cloudburst-type rain · ≥115.6 mm/day','v',dec.v.decision_threshold,115.6)+verdict('ex','Extreme rainfall · ≥64.5 mm/day','h',dec.h.decision_threshold,64.5);
   const hv=rows.filter(o=>o.c.hill);const mean=a=>a.reduce((s,x)=>s+x,0)/a.length;
   const su=mean(hv.map(o=>Math.sin(o.dir*Math.PI/180)*o.ivt)),cu=mean(hv.map(o=>Math.cos(o.dir*Math.PI/180)*o.ivt));const md=(Math.atan2(su,cu)*180/Math.PI+360)%360;
   $('#bkv').innerHTML=`<div><b>${fmt(Math.max(...rows.map(o=>o.r)))} mm</b><span>Highest observed cell rainfall</span></div><div><b>${obsH} / ${obsV}</b><span>Cells observed ≥64.5 / ≥115.6 mm</span></div>
@@ -401,14 +418,24 @@ function bulletin(){const d=state.day,dec=DEC[state.mode];const day=new Date(dat
   const top=rows.slice().sort((a,b)=>b.pv-a.pv||b.ph-a.ph).slice(0,6);
   $('#btable').innerHTML='<tr><th>Cell</th><th class="n">Elev m</th><th class="n">P≥64.5</th><th class="n">P≥115.6</th><th class="n">Obs mm</th></tr>'+top.map(o=>`<tr><td class="mono">${o.c.lat.toFixed(2)}N ${o.c.lon.toFixed(2)}E</td><td class="n">${o.c.elev}</td><td class="n">${(o.ph*100).toFixed(1)}%</td><td class="n">${(o.pv*100).toFixed(1)}%</td><td class="n">${fmt(o.r)}</td></tr>`).join('');
   const hits=rows.filter(o=>o.r>=64.5&&o.ph>=dec.h.decision_threshold).length;
-  $('#bnote').textContent=obsH?`Of ${obsH} cells that actually received ≥64.5 mm, ${hits} were flagged by the model (decision threshold ${(dec.h.decision_threshold*100).toFixed(1)}%). Probabilities are out-of-sample: the model never saw this year while training.`:`No cell received heavy rain on this IMD day. Probabilities are out-of-sample: the model never saw this year while training.`;}
+  $('#bnote').textContent=`Predictions are out-of-sample: the model that made them never saw ${dates[d].slice(0,4)} while training. A square is predicted when its probability reaches the alarm level, which was fixed on the 2017–2018 practice seasons.`;}
+function seasonScore(){const S=seasonIdx(),dec=DEC[state.mode],res={};
+  for(const [t,cut,thr] of [['h',64.5,dec.h.decision_threshold],['v',115.6,dec.v.decision_threshold]]){let h=0,m=0,fa=0,ed=0,ec=0;
+    for(const [,i] of S){let anyO=false,anyP=false;for(let j=0;j<NC;j++){const p=val(probField(t),i,j),r=val('rain',i,j);if(p==null||r==null)continue;const o=r/10>=cut,f=p/1000>=thr;
+      if(o&&f)h++;else if(o)m++;else if(f)fa++;anyO=anyO||o;anyP=anyP||f;}if(anyO){ed++;if(anyP)ec++;}}
+    res[t]={h,m,fa,ed,ec};}
+  const pc=(a,b)=>b?Math.round(100*a/b)+'%':'–',H=res.h,V=res.v;
+  $('#bscoreh').textContent=`Season ${$('#year').value} scorecard · ${state.mode==='same'?'same-day':'24 h-ahead'} model`;
+  $('#bscore').innerHTML='<tr><th></th><th class="n">Extreme ≥64.5</th><th class="n">Cloudburst-type ≥115.6</th></tr>'+
+    [['Hit rate',pc(H.h,H.h+H.m),pc(V.h,V.h+V.m)],['False-alarm ratio',pc(H.fa,H.h+H.fa),pc(V.fa,V.h+V.fa)],['Correct · missed · false',`${H.h} · ${H.m} · ${H.fa}`,`${V.h} · ${V.m} · ${V.fa}`],['Heavy-rain days caught',`${H.ec} of ${H.ed}`,`${V.ec} of ${V.ed}`]]
+    .map(([a,b,c])=>`<tr><td>${a}</td><td class="n"><b>${b}</b></td><td class="n"><b>${c}</b></td></tr>`).join('');}
 
 // ---------- season chart ----------
 let seasonChart;
 function seasonIdx(){const y=$('#year').value;return dates.map((d,i)=>[d,i]).filter(([d])=>d.startsWith(y));}
 function drawSeason(){const S=seasonIdx(),labels=S.map(([d])=>d.slice(5)),obs=S.map(([,i])=>D.cells.reduce((n,c,j)=>n+(val('rain',i,j)>=645?1:0),0)),
   pred=S.map(([,i])=>D.cells.reduce((s,c,j)=>s+(val(probField('h'),i,j)||0)/1000,0));
-  if(seasonChart)seasonChart.destroy();
+  seasonScore();if(seasonChart)seasonChart.destroy();
   seasonChart=new Chart($('#season'),{data:{labels,datasets:[{type:'bar',label:'Observed heavy-rain cells',data:obs,backgroundColor:css('--z-mod'),borderRadius:2,barPercentage:1,categoryPercentage:.9},{type:'line',label:'Expected heavy cells (sum of probabilities)',data:pred,borderColor:css('--p5'),borderWidth:1.5,pointRadius:0,tension:.2}]},
     options:{animation:false,responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},onClick:(e,els)=>{if(els.length){setDay(S[els[0].index][1]);}},
       plugins:{legend:{position:'top',align:'start',labels:{color:css('--ink-2'),boxWidth:10,font:{size:10}}},tooltip:{callbacks:{title:it=>dates[S[it[0].dataIndex][1]]}}},
