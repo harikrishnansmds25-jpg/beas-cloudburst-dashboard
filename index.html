@@ -29,7 +29,8 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 32px}
-.wrap{max-width:1320px;margin:0 auto;display:grid;gap:18px}
+.wrap{max-width:1320px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+.wrap>*,.console>*,.two>*,.panel{min-width:0}
 header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 28px;padding-block:22px 6px;border-bottom:2px solid var(--ink)}
 h1{font:600 2.35rem/1 var(--display);letter-spacing:.01em;margin:0;text-wrap:balance}
 h1 small{display:block;font:500 .95rem/1.4 var(--body);color:var(--ink-2);letter-spacing:0;margin-top:6px;max-width:68ch}
@@ -41,7 +42,8 @@ h3{font:600 1.05rem/1.2 var(--display);margin:0;letter-spacing:.02em}
 .fact b{font:500 1.25rem/1 var(--mono);font-variant-numeric:tabular-nums}
 .fact span{font-size:.75rem;color:var(--ink-2)}
 .console{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,1fr);gap:18px;align-items:start}
-@media (max-width:900px){.console{grid-template-columns:1fr}}
+@media (max-width:900px){.console{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:420px){.two{grid-template-columns:minmax(0,1fr)}.controls label,.controls>div{max-width:100%}.controls select{max-width:100%}}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
 .controls{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
 .controls label{font-size:.78rem;color:var(--ink-2);display:grid;gap:3px}
@@ -75,6 +77,20 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .arw.trk line,.arw.trk path{stroke:var(--track)}
 .arw.trk .halo line,.arw.trk .halo path{stroke:var(--panel)}
 .flowcv{pointer-events:none}
+.mlegend{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;box-shadow:0 2px 8px rgba(10,20,28,.18);font:12px/1.35 var(--body);max-width:236px;max-height:calc(100% - 20px);overflow:auto}
+.mlegend summary{cursor:pointer;padding:7px 10px;font:600 .82rem/1.2 var(--display);letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);list-style-position:inside}
+.mlegend summary span{display:block;text-transform:none;letter-spacing:.01em;font:600 .98rem/1.2 var(--display);color:var(--ink);margin-top:2px}
+.mlegend details:not([open]) summary span{display:none}
+.mlegend .lrows,.mlegend .lsyms{display:grid;gap:3px;padding:0 10px 8px}
+.mlegend .lsyms{border-top:1px solid var(--line);padding-top:7px}
+.mlegend .lunit{font-size:.7rem;color:var(--ink-3);margin-bottom:2px}
+.mlegend .lrow{display:grid;grid-template-columns:26px 1fr;gap:7px;align-items:center}
+.mlegend .lrow i{display:block;width:22px;height:13px;border-radius:2px;border:1px solid var(--line)}
+.mlegend .sym{display:block}
+@media (max-width:600px){.mlegend{max-width:190px;font-size:11px}}
+.leaflet-control-scale-line{background:var(--panel);color:var(--ink);border-color:var(--ink-2);opacity:.9;font:11px var(--body)}
+.howto{margin:8px 0 0;font-size:.84rem;color:var(--ink-2);max-width:80ch}
+.howto b{color:var(--ink)}
 .mapnote{font-size:.74rem;color:var(--ink-3);margin-top:4px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;color:var(--ink-2);margin-top:8px;align-items:center}
 .sw{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:5px;vertical-align:-1px;border:1px solid var(--line)}
@@ -200,7 +216,7 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
     <div class="tabpanel" id="tab-move" hidden>
       <p class="note">Satellite rain cells (GPM IMERG, ≥5 mm/h) were tracked every half hour and compared with the ERA5 steering wind. They agree closely, so the ERA5 moisture-transport direction is used as the direction water-carrying air moves on every day of the archive.</p>
       <div class="controls"><div class="seg" role="group" aria-label="Event"><button id="ev2010" aria-pressed="true">22–23 Aug 2010</button><button id="ev2023" aria-pressed="false">8–9 Jul 2023</button></div></div>
-      <div class="two"><div><div class="mapbox"><div id="trackmap" class="lmap sm" role="region" aria-label="Rain-cell tracks on OpenStreetMap"></div></div><div class="legend"><span><i class="sw" style="background:var(--track)"></i>GPM rain-cell track, arrow at last position</span><span>Outline: Beas basin</span></div></div>
+      <div class="two"><div><div class="mapbox"><div id="trackmap" class="lmap sm" role="region" aria-label="Rain-cell tracks on OpenStreetMap"></div></div><div class="legend"><p class="howto"><b>How to read this map.</b> Each red line follows one heavy rain cell (5 mm/h or more) in NASA GPM satellite rainfall, step by step every half hour; the arrowhead is where the cell was last seen, so it points the way the cell was moving. Compare the arrows with the ERA5 wind directions in the table.</p></div></div>
         <div style="display:grid;gap:14px;align-content:start"><div class="scroll"><table id="movetable"></table></div>
           <div><h3>Direction of moisture transport</h3><p class="note">Share of hill-cell days by direction the vapour moves toward: all days vs heavy-rain days.</p><svg id="rose" viewBox="0 0 320 320" style="max-width:320px;width:100%" role="img" aria-label="Moisture transport direction rose"></svg><div class="legend"><span><i class="sw" style="background:var(--p2)"></i>All days</span><span><i class="sw" style="background:var(--hot)"></i>Heavy-rain days</span></div></div></div></div>
     </div>
@@ -265,7 +281,8 @@ const OsmLayer=L.GridLayer.extend({createTile(c,done){
   setTimeout(()=>done(null,t),0);return t;}});
 function makeMap(id,bounds,minZoom){const m=L.map(id,{zoomSnap:.25,scrollWheelZoom:false,minZoom,maxZoom:12,maxBounds:L.latLngBounds(bounds).pad(.6),attributionControl:true});
   const base=new OsmLayer({attribution:OSM_ATTR}).addTo(m);m.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
-  m.fitBounds(bounds,{padding:[6,6]});m.on('focus',()=>m.scrollWheelZoom.enable());m.on('blur',()=>m.scrollWheelZoom.disable());
+  L.control.scale({imperial:false,position:'bottomleft',maxWidth:120}).addTo(m);
+  const w=document.getElementById(id).clientWidth;m.fitBounds(bounds,{paddingTopLeft:[8,8],paddingBottomRight:[w>=620?Math.min(240,w*.3):8,8]});m.on('focus',()=>m.scrollWheelZoom.enable());m.on('blur',()=>m.scrollWheelZoom.disable());
   MAPS.push({m,base});return m;}
 (()=>{const probe=new Image();probe.onload=()=>{LIVE=true;MAPS.forEach(({m,base})=>{m.setMaxZoom(16);base.redraw();});};probe.src='https://tile.openstreetmap.org/0/0/0.png';})();
 const ll=([x,y])=>[y,x];
@@ -322,14 +339,47 @@ function drawMap(){
 }
 const L_=L;$('#cellop').oninput=()=>drawMap();
 function rampHTML(vars){return '<span class="ramp">'+vars.map(v=>`<i style="background:var(${v})"></i>`).join('')+'</span>';}
-function legend(){const L=state.layer,dec=DEC[state.mode];let h='';
-  if(L==='pH'||L==='pV'){const t=L==='pH'?dec.h.decision_threshold:dec.v.decision_threshold;h=`<span>Probability 0${rampHTML(PR)}≥${(2*t*100).toFixed(0)}%</span><span>Bold outline: above decision threshold ${(t*100).toFixed(1)}%</span><span>○ observed ≥64.5 mm · ◯ ≥115.6 mm</span><span>→ moisture transport</span>`;}
-  else if(L==='rH'||L==='rV')h=`<span>Percentile of today's model risk among this cell's days in the same month: &lt;50 ${rampHTML(PR)} ≥99.5</span><span>Steps 50 · 80 · 90 · 95 · 98 · 99.5</span><span>○ observed ≥64.5 mm · ◯ ≥115.6 mm</span><span>→ moisture transport</span>`;
-  else if(L==='rain')h=`<span>IMD categories: light, moderate, rather heavy, heavy, very heavy, extremely heavy ${rampHTML(PR)} (mm/day)</span><span>→ moisture transport</span>`;
-  else if(L.startsWith('zone'))h=['Low','Moderate','High'].map(z=>`<span><i class="sw" style="background:${zoneColor(z)}"></i>${z}</span>`).join('')+'<span>Out-of-sample mean probability vs basin mean: &lt;0.75×, 0.75–1.5×, ≥1.5×</span>';
-  else if(L==='gi')h=`<span><i class="sw" style="background:var(--hot)"></i>Hot spot (95–99%)</span><span><i class="sw" style="background:var(--hot2)"></i>Hot spot (90%)</span><span><i class="sw" style="background:var(--ns)"></i>Not significant</span><span><i class="sw" style="background:var(--cold)"></i>Cold spot</span>`;
-  else h=`<span><i class="sw" style="background:var(--hot)"></i>Rising &gt;1.5 days/decade</span><span><i class="sw" style="background:var(--hot2)"></i>Rising</span><span><i class="sw" style="background:var(--ns)"></i>Little change</span><span><i class="sw" style="background:var(--cold)"></i>Falling</span>`;
-  $('#legend').innerHTML=h;}
+// ---------- legends: key inside each map + "how to read" line under it ----------
+const SV=inner=>`<svg class="sym" width="26" height="16" viewBox="0 0 26 16" aria-hidden="true">${inner}</svg>`;
+const SYM={
+  arrow:SV('<g style="stroke:var(--panel);stroke-width:4.5;fill:none;stroke-linecap:round"><line x1="3" y1="8" x2="21" y2="8"/><path d="M16,4L21,8L16,12"/></g><g style="stroke:var(--arrow);stroke-width:2;fill:none;stroke-linecap:round"><line x1="3" y1="8" x2="21" y2="8"/><path d="M16,4L21,8L16,12"/></g>'),
+  flow:SV('<line x1="2" y1="8" x2="24" y2="8" style="stroke:var(--accent);stroke-width:2;stroke-dasharray:5 3"/>'),
+  ring:SV('<circle cx="13" cy="8" r="4.5" style="fill:none;stroke:var(--obs);stroke-width:2"/>'),
+  ring2:SV('<circle cx="13" cy="8" r="6.8" style="fill:none;stroke:var(--obs);stroke-width:2"/>'),
+  bold:SV('<rect x="6" y="2" width="14" height="12" style="fill:var(--p4);fill-opacity:.5;stroke:var(--ink);stroke-width:2.2"/>'),
+  basin:SV('<path d="M2,12C7,2 14,14 24,4" style="fill:none;stroke:var(--ink);stroke-width:2"/>'),
+  town:SV('<circle cx="13" cy="8" r="3" style="fill:var(--ink);stroke:var(--panel);stroke-width:1"/>'),
+  track:SV('<g style="stroke:var(--track);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="M2,13L9,8L15,10L22,4"/><path d="M17,3.5L22,4L21,9"/></g>')};
+const WIDE=matchMedia('(min-width: 700px)').matches;
+function legendBox(m){const c=L.control({position:'topright'});c.onAdd=()=>{const d=L.DomUtil.create('div','mlegend');L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);return d;};c.addTo(m);return c.getContainer();}
+function setLegend(box,title,rows,syms,unit=''){const was=box.querySelector('details'),open=was?was.open:WIDE;
+  box.innerHTML=`<details${open?' open':''}><summary>Legend<span>${title}</span></summary>`+
+    (rows.length?`<div class="lrows">${unit?`<div class="lunit">${unit}</div>`:''}${rows.map(([c,t])=>`<div class="lrow"><i style="background:${c}"></i><span>${t}</span></div>`).join('')}</div>`:'')+
+    (syms.length?`<div class="lsyms">${syms.map(([s,t])=>`<div class="lrow">${SYM[s]}<span>${t}</span></div>`).join('')}</div>`:'')+'</details>';}
+const pct=v=>v<10?v.toFixed(1):v.toFixed(0);
+function probRows(thr){const b=k=>2*thr*k/7*100;return PR.map((v,k)=>[css(v),k===0?`under ${pct(b(1))}%`:k===6?`${pct(b(6))}% or more`:`${pct(b(k))}–${pct(b(k+1))}%`]);}
+const relRows=()=>['below 50th','50th–80th','80th–90th','90th–95th','95th–98th','98th–99.5th','99.5th or above (top 0.5%)'].map((t,k)=>[css(PR[k]),t]);
+const rainRows=()=>['under 2.5 · dry / very light','2.5–15.6 · light','15.6–35.6 · moderate','35.6–64.5 · rather heavy','64.5–115.6 · heavy','115.6–204.5 · very heavy','204.5 or more · extremely heavy'].map((t,k)=>[css(PR[k]),t]);
+const giRows=()=>[[css('--hot'),'Hot spot, 95–99% confidence'],[css('--hot2'),'Hot spot, 90% confidence'],[css('--ns'),'Not significant'],[css('--cold'),'Cold spot (fewer heavy days)']];
+const DAILY_SYMS=[['arrow','Moisture transport: direction water vapour moves (longer = stronger)'],['flow','Animated moisture flow (toggle below map)'],['ring','IMD observed ≥64.5 mm (heavy)'],['ring2','IMD observed ≥115.6 mm (very heavy)']];
+const BASE_SYMS=[['town','Town'],['basin','Beas basin boundary']];
+const mainLegend=legendBox(map);
+function legend(){const L=state.layer,dec=DEC[state.mode],mode=state.mode==='same'?'same-day model':'24 h-ahead model';let title,rows=[],syms=[],unit='',how='';
+  if(L==='pH'||L==='pV'){const t=L==='pH'?dec.h.decision_threshold:dec.v.decision_threshold,amt=L==='pH'?'64.5':'115.6',kind=L==='pH'?'extreme rain':'cloudburst-type rain';
+    title=`Chance of ${kind} (≥${amt} mm/day)`;unit=`Model probability, ${mode}`;rows=probRows(t);syms=[['bold',`Above decision threshold (${pct(t*100)}%): flagged as risk`],...DAILY_SYMS,...BASE_SYMS];
+    how=`Each square is one 0.25° IMD cell (about 27 km across). Its colour is the model's chance that the cell receives ${amt} mm or more on this IMD day (08:30 to 08:30 IST); darker blue means more likely. A bold outline means the chance is above the model's decision threshold of ${pct(t*100)}%, so the cell is counted as at risk in the bulletin. Rings show where IMD actually measured heavy rain, so you can compare the prediction with what happened.`;}
+  else if(L==='rH'||L==='rV'){const kind=L==='rH'?'extreme-rain':'cloudburst-type';title=`Today's ${kind} risk vs this cell's normal`;unit='Percentile among the cell\'s days in the same month';rows=relRows();syms=[...DAILY_SYMS,...BASE_SYMS];
+    how=`This layer asks how unusual today is for each place. The model's ${kind} probability for the day is ranked against all days in the same month for that same cell (2001–2025). The darkest cells are in their top 0.5% of days. It helps in valley cells such as Kullu and Manali, where daily probabilities stay low because a cloudburst covers only a small part of a 27 km cell.`;}
+  else if(L==='rain'){title='Observed rainfall (IMD gridded)';unit='mm per IMD day · IMD intensity category';rows=rainRows();syms=[...DAILY_SYMS.filter(s=>!s[0].startsWith('ring')),...BASE_SYMS];
+    how='What actually fell, in the India Meteorological Department\'s official intensity categories. Heavy (64.5 mm or more) and very heavy (115.6 mm or more) are the two events the models predict.';}
+  else if(L.startsWith('zone')){const cb=L==='zoneCB';title=cb?'Cloudburst potential zone':'Extreme-rainfall potential zone';unit='Cell\'s mean probability vs basin mean';rows=[[zoneColor('High'),'High · 1.5× basin mean or more'],[zoneColor('Moderate'),'Moderate · 0.75–1.5×'],[zoneColor('Low'),'Low · under 0.75×']];syms=BASE_SYMS;
+    how=`Long-term zones that do not change with the day slider. Each cell's average out-of-sample probability of ${cb?'very heavy (≥115.6 mm), cloudburst-type':'heavy (≥64.5 mm)'} rain over 2001–2025 is compared with the basin average. High zones are where the atmosphere most often sets up for these events.`;}
+  else if(L==='gi'){title='Heavy-rain hotspots (Getis-Ord Gi*, Apache Sedona)';rows=giRows();syms=BASE_SYMS;
+    how='A hot spot is a cell whose neighbourhood has significantly more heavy-rain days per monsoon than the north-west Himalaya region as a whole. It is a statistical cluster, computed with Apache Spark and Sedona on the full IMD archive. This layer does not change with the day slider.';}
+  else{title='Trend in heavy-rain days, 2001–2025';unit='Change in heavy-rain days per season, per decade';rows=[[css('--hot'),'Rising by more than 1.5'],[css('--hot2'),'Rising, 0.25–1.5'],[css('--ns'),'Little change, ±0.25'],[css('--cold'),'Falling by more than 0.25']];syms=BASE_SYMS;
+    how='Least-squares trend in the number of heavy-rain days (64.5 mm or more) per monsoon season. Red cells are getting heavy-rain days more often; blue cells less often. This layer does not change with the day slider.';}
+  setLegend(mainLegend,title,rows,syms,unit);
+  $('#legend').innerHTML=`<p class="howto"><b>How to read this map.</b> ${how}</p>`;}
 
 // tooltip
 function cellTip(i){const c=D.cells[i],d=state.day;return `${c.lat.toFixed(2)}°N ${c.lon.toFixed(2)}°E · ${c.elev} m<br>${dates[d]} · IMD rain ${fmt(val('rain',d,i)/10)} mm<br>P(≥64.5) ${fmt(val(probField('h'),d,i)/10,1)}% · P(≥115.6) ${fmt(val(probField('v'),d,i)/10,1)}%<br>Zones: ${c.zoneER} / ${c.zoneCB} · Gi* z ${fmt(c.giZ,2)}`;}
@@ -412,7 +462,7 @@ function perturb(x){x=x.slice();const add=(n,d)=>{if(fi(n)>=0)x[fi(n)]+=d},mul=(
   add('tcwv_max',sv('tcwv'));add('tcwv_mean',sv('tcwv'));['cloud_water_max','cloud_water_mean','tclw_max','tciw_max'].forEach(n=>mul(n,sv('cw')));['cape_max','cape_mean'].forEach(n=>mul(n,sv('cape')));
   const a=sv('rot')*Math.PI/180,u=x[fi('ivt_u')],v=x[fi('ivt_v')];x[fi('ivt_u')]=(u*Math.cos(a)+v*Math.sin(a))*sv('ivt');x[fi('ivt_v')]=(-u*Math.sin(a)+v*Math.cos(a))*sv('ivt');mul('ivt_mean',sv('ivt'));mul('ivt_max',sv('ivt'));
   ['conv_mean','conv_max'].forEach(n=>mul(n,sv('conv')));['rh2m_mean','rh2m_max'].forEach(n=>{if(fi(n)>=0)x[fi(n)]=Math.min(100,Math.max(0,x[fi(n)]+sv('rh')))});add('t2m_mean',sv('t2m'));return x;}
-const simMap=makeMap('simmap',cellBounds,7);let simRes=[];
+const simMap=makeMap('simmap',cellBounds,7);let simRes=[];const simLegendBox=legendBox(simMap);
 const simPaths=D.cells.map((c,i)=>L.polygon(ringsLL(c.rings),{weight:.8,fillOpacity:.62}).bindTooltip(()=>`${D.cells[i].lat.toFixed(2)}°N ${D.cells[i].lon.toFixed(2)}°E<br>Base ${(simRes[i].base*100).toFixed(1)}% → simulated ${(simRes[i].sim*100).toFixed(1)}%<br>Observed ${fmt(simRes[i].obs)} mm`,{sticky:true,className:'tt'}).addTo(simMap));
 const simBasin=L.polygon(D.basin.map(r=>r.map(ll)),{fill:false,weight:2,interactive:false}).addTo(simMap);
 function runSim(){SL.forEach(([k,,u])=>$('#o-'+k).textContent=(u==='×'?sv(k).toFixed(2)+'×':(sv(k)>0?'+':'')+sv(k)+' '+u));
@@ -425,7 +475,9 @@ function runSim(){SL.forEach(([k,,u])=>$('#o-'+k).textContent=(u==='×'?sv(k).to
   $('#simkv').innerHTML=`<div><b>${nb} → ${ns}</b><span>Cells above decision threshold (${(model.threshold*100).toFixed(1)}%)</span></div><div><b>${(mb*100).toFixed(1)}% → ${(ms*100).toFixed(1)}%</b><span>Mean probability, hill cells</span></div>
    <div><b>${(Math.max(...simRes.map(r=>r.sim))*100).toFixed(1)}%</b><span>Highest simulated cell probability</span></div><div><b>${fmt(Math.max(...simRes.map(r=>r.obs)))} mm</b><span>What IMD actually observed on the base day</span></div>
    <div style="grid-column:1/-1"><span>Model: XGBoost (${model.trees.length} trees, trained 2001–2018 on GPU). Browser and Python predictions agree to within ${model.maxErr.toExponential(1)}.</span></div>`;
-  $('#simlegend').innerHTML=`<span>Simulated probability 0${rampHTML(PR)}≥${(2*model.threshold*100).toFixed(0)}%</span><span>Bold outline: above decision threshold</span>`;}
+  const amt=T==='heavy'?'64.5':'115.6';
+  setLegend(simLegendBox,`Simulated chance of ${T==='heavy'?'extreme':'cloudburst-type'} rain (≥${amt} mm/day)`,probRows(model.threshold),[['bold',`Above decision threshold (${pct(model.threshold*100)}%)`],...BASE_SYMS.slice(1)],'XGBoost probability after your changes');
+  $('#simlegend').innerHTML=`<p class="howto"><b>How to read this map.</b> Colours show the model's chance of ${amt} mm or more in each cell after your slider changes; darker blue means more likely, and a bold outline means the cell would be flagged. Hover a cell to see the base-day value, the simulated value and what IMD actually measured. Move one slider at a time to see which ingredient matters most.</p>`;}
 $('#sliders').oninput=runSim;$('#simday').onchange=runSim;$('#simreset').onclick=()=>{SL.forEach(([k,,,,,,v])=>$('#s-'+k).value=v);runSim();};
 $('#st-h').onclick=()=>{state.simTarget='heavy';$('#st-h').setAttribute('aria-pressed',true);$('#st-v').setAttribute('aria-pressed',false);runSim();};
 $('#st-v').onclick=()=>{state.simTarget='very_heavy';$('#st-v').setAttribute('aria-pressed',true);$('#st-h').setAttribute('aria-pressed',false);runSim();};
@@ -461,7 +513,8 @@ $('#mm-next').onclick=()=>{state.mmode='next_day';$('#mm-next').setAttribute('ar
 // ---------- movement ----------
 let trackMap,trackLayer;
 function drawTracks(){
-  if(!trackMap){trackMap=makeMap('trackmap',[[30,74],[34,79.5]],5);trackLayer=L.layerGroup().addTo(trackMap);}
+  if(!trackMap){trackMap=makeMap('trackmap',[[30,74],[34,79.5]],5);trackLayer=L.layerGroup().addTo(trackMap);
+    setLegend(legendBox(trackMap),'Rain-cell movement (GPM IMERG)',[],[['track','Rain-cell track; arrowhead = last position and direction of travel'],['basin','Beas basin boundary']]);}
   trackLayer.clearLayers();const col=css('--track');
   L.polygon(D.basin.map(r=>r.map(ll)),{fill:false,weight:2,color:css('--ink'),interactive:false}).addTo(trackLayer);
   (D.movement.tracks[state.moveEv]||[]).forEach((t,k)=>{const pts=t.map(ll);L.polyline(pts,{color:col,weight:2,opacity:.85}).bindTooltip(`Track ${k+1} · ${t.length} half-hour steps`,{sticky:true,className:'tt'}).addTo(trackLayer);
@@ -485,13 +538,14 @@ function drawRose(){const r=$('#rose');r.innerHTML='';const all=new Array(16).fi
 let giMap,giLayer;
 function drawBig(){const G=D.bigdata.log;$('#bigkv').innerHTML=[[G.imd_rows?.toLocaleString(),'IMD cell-days processed in Spark'],[G.imd_cells?.toLocaleString(),'IMD land cells (all India)'],[G.gpm_rows?.toLocaleString(),'GPM half-hourly cell values'],[G.beas_cells_by_spatial_join,'Beas cells via ST_Contains join'],[G.gistar_region_cells,'Cells in Gi* analysis'],[G.runtime_seconds+' s','End-to-end Spark runtime']].map(([a,b])=>`<div><b>${a}</b><span>${b}</span></div>`).join('');
   const reg=D.bigdata.region;
-  if(!giMap){giMap=makeMap('gimap',[[29.5,73.5],[34.5,80]],5);giLayer=L.layerGroup().addTo(giMap);}
+  if(!giMap){giMap=makeMap('gimap',[[29.5,73.5],[34.5,80]],5);giLayer=L.layerGroup().addTo(giMap);giMap._legend=legendBox(giMap);}
+  setLegend(giMap._legend,'Heavy-rain hotspots (Gi*)',giRows(),[['basin','Beas basin boundary']],'0.25° IMD cells, JJAS 2001–2025');
   giLayer.clearLayers();const rd=L.canvas({padding:.2}),paper=css('--panel');
   reg.forEach(c=>L.rectangle([[c.lat-.125,c.lon-.125],[c.lat+.125,c.lon+.125]],{renderer:rd,fillColor:giColor(c.hotspot_class),fillOpacity:c.hotspot_class&&c.hotspot_class.startsWith('Not')?.18:.62,color:paper,weight:.5})
     .bindTooltip(`${fmt(c.lat,2)}°N ${fmt(c.lon,2)}°E<br>${fmt(c.heavy_days_per_season,2)} heavy days / season<br>Gi* z ${fmt(c.gi_z,2)} · ${c.hotspot_class||'n/a'}<br>Trend ${fmt(c.heavy_days_trend_per_decade,2)} days/decade`,{sticky:true,className:'tt'}).addTo(giLayer));
   L.polygon(D.basin.map(r=>r.map(ll)),{fill:false,weight:2.2,color:css('--ink'),interactive:false}).addTo(giLayer);
   giMap.invalidateSize();
-  $('#gilegend').innerHTML=`<span><i class="sw" style="background:var(--hot)"></i>Hot spot 95–99%</span><span><i class="sw" style="background:var(--hot2)"></i>Hot spot 90%</span><span><i class="sw" style="background:var(--ns)"></i>Not significant</span><span><i class="sw" style="background:var(--cold)"></i>Cold spot</span><span>Outline: Beas basin</span>`;}
+  $('#gilegend').innerHTML=`<p class="howto"><b>How to read this map.</b> Each square is a 0.25° IMD cell. Red cells sit in clusters with significantly more heavy-rain days (64.5 mm or more) per monsoon than the region as a whole; blue cells sit in clusters with fewer. Grey cells are not significantly different. Hover a cell for its heavy-rain days per season, Gi* z-score and trend.</p>`;}
 
 // ---------- header facts, tabs, theme ----------
 function facts(){const tH=D.metrics.find(r=>r.mode==='same_day'&&r.target==='heavy'&&r.model===DEC.same.h.model&&r.set==='test_2019_2024');
