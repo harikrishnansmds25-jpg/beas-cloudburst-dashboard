@@ -1,0 +1,24 @@
+name: Daily forecast
+on:
+  schedule:
+    - cron: "30 9 * * *"   # 15:00 IST, after the 00 UTC ECMWF run is published
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas numpy requests lightgbm==4.6.0
+      - run: python forecast/run_forecast.py
+      - name: Commit forecast
+        run: |
+          git config user.name "forecast-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add forecast.json
+          git diff --cached --quiet || git commit -m "Update forecast $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push
