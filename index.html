@@ -200,7 +200,7 @@ tr.sel td{font-weight:600}
   <nav class="guide" aria-label="Parts of this page">
     <a href="#replay"><b>1 · Replay a past day</b><span>Model prediction next to the rain IMD measured, any monsoon day 2001–2025</span></a>
     <a href="#forecast"><b>2 · Forecast</b><span>ECMWF weather forecast run through the trained model</span></a>
-    <a href="#perf"><b>3 · How good is it?</b><span>Change the model and alarm level; see hits, misses and false alarms on real data</span></a>
+    <a href="#perf"><b>3 · How good is it?</b><span>Models used, their scores, and a replay of hits, misses and false alarms on real data</span></a>
     <a href="#tools"><b>4 · What-if and movement</b><span>Change a real day's atmosphere; replay real rain-cell movement</span></a>
   </nav>
 
@@ -280,26 +280,12 @@ tr.sel td{font-weight:600}
     <div><h3>Overall scores on the test seasons 2019–2024</h3><div class="scroll"><table id="ptable"></table></div>
       <p class="note" id="pnote"></p></div>
 
-    <div><h3>Try it: change the model and the alarm level</h3>
-      <p class="note">The alarm level is the chance at which the model says “Yes”. Lower it and the model catches more events but raises more false alarms; raise it and the opposite happens.</p></div>
+    <div><h3>Replay a test season: caught, missed and false alarms</h3>
+      <p class="note">Each square is coloured by how the chosen model's prediction turned out that day: caught, missed, false alarm or correctly quiet. Press play to watch the whole monsoon. These are the models trained only on 2001–2016 (the official test set-up), at their trained alarm level. The replay in section 1 uses models retrained on all other seasons, so the counts for a single day can differ slightly.</p></div>
     <div class="controls">
       <div><div class="eyebrow" style="margin-bottom:4px">Event</div><div class="seg" role="group" aria-label="Event"><button id="pt-h" aria-pressed="true">Extreme rain ≥64.5 mm</button><button id="pt-v" aria-pressed="false">Cloudburst-type ≥115.6 mm</button></div></div>
       <div><div class="eyebrow" style="margin-bottom:4px">Prediction made</div><div class="seg" role="group" aria-label="Prediction made"><button id="pm-same" aria-pressed="true">Same day</button><button id="pm-next" aria-pressed="false">1 day ahead</button></div></div>
-      <label for="pmodel">Model<select id="pmodel"></select></label>
-      <label for="pperiod">Seasons scored<select id="pperiod"><option value="test">Test 2019–2024</option><option value="hold">Hold-out 2025</option></select></label>
-      <label class="alarm" for="palarm">Alarm level <output id="palarmo"></output><input type="range" id="palarm" min="0" max="100" step="1" value="50"></label>
-      <button id="preset">Back to trained alarm level</button>
-    </div>
-    <div class="pgrid">
-      <div><div class="eyebrow" style="margin-bottom:6px">Square-days, model vs IMD</div><div class="cm" id="pcm"></div></div>
-      <div class="kv" id="pkv" style="align-content:start"></div>
-      <div><div class="eyebrow" style="margin-bottom:6px">What the alarm level changes</div><div class="chartbox" style="height:240px"><canvas id="pcurve"></canvas></div></div>
-    </div>
-    <div><h3>All four models on the same seasons</h3><p class="note">Click a row to use that model above. Scores are at each model's own trained alarm level.</p><div class="scroll"><table id="pcomp"></table></div></div>
-
-    <div><h3>Replay a season with these settings</h3>
-      <p class="note">Each square is coloured by the outcome of the prediction above on that day: caught, missed, false alarm or correctly quiet. Press play to watch the whole monsoon. These are the models trained only on 2001–2016 (the official test set-up). The replay in section 1 uses models retrained on all other seasons, so the counts for a single day can differ slightly.</p></div>
-    <div class="controls"><label for="pseason">Season<select id="pseason"></select></label><button class="primary" id="pplay">▶ Play season</button>
+      <label for="pseason">Season<select id="pseason"></select></label><button class="primary" id="pplay">▶ Play season</button>
       <input type="range" id="pday" min="0" max="0" value="0" aria-label="Day of season" style="flex:1 1 220px"><span class="clock" id="pdate"></span></div>
     <div class="two"><div><div class="mapbox"><div id="perfmap" class="lmap sm" role="region" aria-label="Prediction outcome map on OpenStreetMap"></div></div></div>
       <div style="display:grid;gap:10px;align-content:start"><div class="kv" id="pdaykv"></div><div class="chartbox" style="height:200px"><canvas id="pseasonc"></canvas></div></div></div>
@@ -650,42 +636,12 @@ function perfTable(){const rows=[];
   $('#ptable').innerHTML='<tr><th>Event</th><th>Made</th><th>Model used</th><th class="n">Accuracy</th><th class="n">“Always No” accuracy</th><th class="n">Precision</th><th class="n">Recall</th><th class="n">F1</th><th class="n">ROC-AUC</th><th class="n">PR-AUC</th></tr>'+rows.join('');
   $('#pnote').innerHTML='<b>How to read this.</b> Accuracy looks excellent, but a model that always says “No” scores almost the same, because these events are rare. The useful scores are <b>precision</b> (when the model says Yes, how often that much rain came), <b>recall</b> (how many of the real events it caught) and <b>ROC-AUC</b> (how well it ranks risky days above quiet ones: 0.5 is guessing, 1 is perfect). Scored per square and per day over 2019–2024.';}
 
-let pcurveChart;
-function drawPerf(){const d=pData(),c=confusion(d,pst.alarm),ev=pst.target==='heavy'?'extreme rain':'cloudburst-type rain';
-  const tr=trainedAlarm();$('#palarmo').textContent=apct(pst.alarm)+(Math.abs(pst.alarm-tr)/tr<0.04?' (trained level)':` (trained: ${apct(tr)})`);
-  $('#pcm').innerHTML=`<div class="h"></div><div class="h">IMD measured ${ev}</div><div class="h">IMD: no such rain</div>
-    <div class="h">Model: Yes</div><div class="hit"><b>${c.h.toLocaleString()}</b>caught</div><div class="fa"><b>${c.f.toLocaleString()}</b>false alarms</div>
-    <div class="h">Model: No</div><div class="miss"><b>${c.m.toLocaleString()}</b>missed</div><div class="cn"><b>${c.q.toLocaleString()}</b>correctly quiet</div>`;
-  $('#pkv').innerHTML=[[pc(c.rec),'Recall: real events caught'],[pc(c.prec),'Precision: Yes answers that were right'],[`${(c.acc*100).toFixed(1)}%`,`Accuracy (always “No” would score ${(c.accNo*100).toFixed(1)}%)`],
-    [fmt(c.f1,2),'F1: balance of recall and precision'],[fmt(d.roc,3),'ROC-AUC (0.5 = guessing, 1 = perfect)'],[fmt(d.pr,3),`PR-AUC (guessing would score ${(d.P/(d.P+d.N)).toFixed(3)})`]]
-    .map(([a,b])=>`<div><b>${a}</b><span>${b}</span></div>`).join('');
-  const grid=Array.from({length:41},(_,i)=>AMIN*Math.pow(AMAX/AMIN,i/40)),cs=grid.map(a=>confusion(d,a)),k=Math.round(40*Math.log(pst.alarm/AMIN)/Math.log(AMAX/AMIN));
-  if(pcurveChart)pcurveChart.destroy();
-  pcurveChart=new Chart($('#pcurve'),{type:'line',data:{labels:grid.map(apct),datasets:[
-      {label:'Recall: events caught',data:cs.map(x=>x.rec==null?null:x.rec*100),borderColor:css('--good'),backgroundColor:css('--good'),pointRadius:0,borderWidth:2},
-      {label:'Precision: Yes answers right',data:cs.map(x=>x.prec==null?null:x.prec*100),borderColor:css('--z-mod'),backgroundColor:css('--z-mod'),pointRadius:0,borderWidth:2}]},plugins:[markLine],
-    options:{animation:false,responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      onClick:(e,els)=>{if(els.length){pst.alarm=grid[els[0].index];$('#palarm').value=a2s(pst.alarm);drawPerf();}},
-      plugins:{markLine:{index:k},legend:{position:'top',align:'start',labels:{color:css('--ink-2'),boxWidth:10,font:{size:10}}},tooltip:{callbacks:{title:it=>'Alarm level '+it[0].label,label:it=>`${it.dataset.label}: ${it.raw==null?'–':it.raw.toFixed(0)+'%'}`}}},
-      scales:{x:{title:{display:true,text:'Alarm level (chance at which the model says Yes)',color:css('--ink-3'),font:{size:10}},ticks:{color:css('--ink-3'),maxTicksLimit:7,font:{size:10}},grid:{display:false}},
-        y:{min:0,max:100,title:{display:true,text:'%',color:css('--ink-3'),font:{size:10}},ticks:{color:css('--ink-3'),font:{size:10}},grid:{color:css('--line')}}}}});
-  perfComp();perfSeason();}
-
-function perfComp(){const sel=selModel(pst.mode,pst.target),rows=PMODELS.map(m=>{const d=pData(m);return {m,d,c:confusion(d,trainedAlarm(m))};});
-  $('#pcomp').innerHTML='<tr><th>Model</th><th class="n">Trained alarm level</th><th class="n">Recall</th><th class="n">Precision</th><th class="n">F1</th><th class="n">ROC-AUC</th><th class="n">PR-AUC</th></tr>'+
-    rows.map(({m,d,c})=>`<tr class="click${m===pst.model?' sel':''}" data-m="${m}"><td>${MNAME[m]}${m===sel?' · chosen on 2017–2018':''}</td><td class="n">${apct(trainedAlarm(m))}</td><td class="n">${pc(c.rec)}</td><td class="n">${pc(c.prec)}</td><td class="n">${fmt(c.f1,2)}</td><td class="n">${fmt(d.roc,3)}</td><td class="n">${fmt(d.pr,3)}</td></tr>`).join('');
-  document.querySelectorAll('#pcomp tr.click').forEach(tr=>tr.onclick=()=>setPModel(tr.dataset.m));}
-
-PMODELS.forEach(m=>$('#pmodel').add(new Option(MNAME[m],m)));
-function setPModel(m){pst.model=m;$('#pmodel').value=m;pst.alarm=trainedAlarm();$('#palarm').value=a2s(pst.alarm);drawPerf();}
+function drawPerf(){perfSeason();}
+function setPModel(m){pst.model=m;pst.alarm=trainedAlarm();drawPerf();}
 $('#pt-h').onclick=()=>{pst.target='heavy';seg('#pt-h','#pt-v');setPModel(selModel(pst.mode,pst.target));};
 $('#pt-v').onclick=()=>{pst.target='very_heavy';seg('#pt-v','#pt-h');setPModel(selModel(pst.mode,pst.target));};
 $('#pm-same').onclick=()=>{pst.mode='same_day';seg('#pm-same','#pm-next');setPModel(selModel(pst.mode,pst.target));};
 $('#pm-next').onclick=()=>{pst.mode='next_day';seg('#pm-next','#pm-same');setPModel(selModel(pst.mode,pst.target));};
-$('#pmodel').onchange=e=>setPModel(e.target.value);
-$('#pperiod').onchange=e=>{pst.period=e.target.value;drawPerf();};
-$('#palarm').oninput=e=>{pst.alarm=s2a(+e.target.value);drawPerf();};
-$('#preset').onclick=()=>setPModel(pst.model);
 
 // season replay of outcomes
 const perfMap=makeMap('perfmap',cellBounds,7),perfLegend=legendBox(perfMap);
