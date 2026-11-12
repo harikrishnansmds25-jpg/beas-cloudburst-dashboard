@@ -9,7 +9,7 @@
 /* Layout: monsoon operations console - basin map left, day bulletin right, analysis tabs below */
 :root{
   --paper:#f3f6f7; --panel:#ffffff; --ink:#13212b; --ink-2:#4b5c68; --ink-3:#74838d; --line:#d6dee3; --accent:#0d6b88; --accent-ink:#ffffff;
-  --p1:#cde2fb; --p2:#9ec5f4; --p3:#6da7ec; --p4:#3987e5; --p5:#256abf; --p6:#184f95; --p7:#0d366b;
+  --p1:#0d366b; --p2:#184f95; --p3:#256abf; --p4:#3987e5; --p5:#6da7ec; --p6:#9ec5f4; --p7:#cde2fb;
   --z-low:#f9dcc8; --z-mod:#ee9661; --z-high:#b54318; --hot:#c8402a; --hot2:#e98463; --cold:#3d78c4; --ns:#dfe3e6;
   --obs:#111c24; --track:#c0392b; --arrow:#26343e; --good:#1e7d4f; --warn:#b26b00;
   --tiles:none; --tilebg:#e8ecee; --on-high:#ffffff; --on-mod:#1b0d05;
@@ -454,7 +454,15 @@ function setLegend(box,title,rows,syms,unit=''){const was=box.querySelector('det
     (rows.length?`<div class="lrows">${unit?`<div class="lunit">${unit}</div>`:''}${rows.map(([c,t])=>`<div class="lrow"><i style="background:${c}"></i><span>${t}</span></div>`).join('')}</div>`:'')+
     (syms.length?`<div class="lsyms">${syms.map(([s,t])=>`<div class="lrow">${SYM[s]}<span>${t}</span></div>`).join('')}</div>`:'')+'</details>';}
 const pct=v=>v<10?v.toFixed(1):v.toFixed(0);
-function probRows(thr){const b=k=>2*thr*k/7*100;return PR.map((v,k)=>[css(v),k===0?`under ${pct(b(1))}%`:k===6?`${pct(b(6))}% or more`:`${pct(b(k))}–${pct(b(k+1))}%`]);}
+// colour rule on every chance map: lighter square = higher chance. The thick border ("box") marks a Yes.
+const isDark=()=>parseInt(css('--ink').replace('#','').slice(0,2),16)>128;
+const boxWord=()=>isDark()?'white':'black';
+const RAMP_NOTE='Lighter colour = higher chance';
+const boxSym=(thr,what='model says Yes')=>['bold',`${boxWord()[0].toUpperCase()+boxWord().slice(1)} thick border ("box"): ${what}, chance ≥ alarm level ${pct(thr*100)}%`];
+const rampHow=`The lighter the square, the higher the chance: dark navy means very unlikely, near-white means most likely`;
+const boxHow=(thr,what='the model says Yes, rain is predicted in that square')=>`A ${boxWord()} thick border around a square (the "box") means its chance reached the alarm level of ${pct(thr*100)}%, so ${what}. Squares without the box are a No`;
+function probRows(thr){const b=k=>2*thr*k/7*100,a=thr*100;return PR.map((v,k)=>{let t=k===0?`under ${pct(b(1))}% · least likely`:k===6?`${pct(b(6))}% or more · most likely`:`${pct(b(k))}–${pct(b(k+1))}%`;
+  if(a>=b(k)&&a<b(k+1))t+=` · alarm level (${pct(a)}%)`;return [css(v),t];});}
 const relRows=()=>['below 50th','50th–80th','80th–90th','90th–95th','95th–98th','98th–99.5th','99.5th or above (top 0.5%)'].map((t,k)=>[css(PR[k]),t]);
 const rainRows=()=>['under 2.5 · dry / very light','2.5–15.6 · light','15.6–35.6 · moderate','35.6–64.5 · rather heavy','64.5–115.6 · heavy','115.6–204.5 · very heavy','204.5 or more · extremely heavy'].map((t,k)=>[css(PR[k]),t]);
 const DAILY_SYMS=[['arrow','Moisture transport: direction water vapour moves (longer = stronger)'],['flow','Moisture animation (button below the map)'],['ring','IMD measured ≥64.5 mm (extreme rain)'],['ring2','IMD measured ≥115.6 mm (cloudburst-type)']];
@@ -462,10 +470,10 @@ const BASE_SYMS=[['town','Town'],['basin','Beas basin boundary']];
 const mainLegend=legendBox(map);
 function legend(){const L=state.layer,dec=DEC[state.mode],mode=state.mode==='same'?'same-day model':'1-day-ahead model';let title,rows=[],syms=[],unit='',how='';
   if(L==='pH'||L==='pV'){const t=L==='pH'?dec.h.decision_threshold:dec.v.decision_threshold,amt=L==='pH'?'64.5':'115.6',kind=L==='pH'?'extreme rain':'cloudburst-type rain';
-    title=`Chance of ${kind} (≥${amt} mm/day)`;unit=`Model probability, ${mode}`;rows=probRows(t);syms=[['bold',`At or above the alarm level (${pct(t*100)}%): predicted Yes`],...DAILY_SYMS,...BASE_SYMS];
-    how=`Each square is one 0.25° IMD cell (about 27 km across). Its colour is the model's chance that the cell receives ${amt} mm or more on this IMD day (08:30 to 08:30 IST); darker blue means more likely. A bold outline means the chance reached the alarm level of ${pct(t*100)}%, so the model says Yes for that square. Rings show where IMD actually measured heavy rain, so you can compare the prediction with what happened.`;}
+    title=`Chance of ${kind} (≥${amt} mm/day)`;unit=`${RAMP_NOTE} · model probability, ${mode}`;rows=probRows(t);syms=[boxSym(t),...DAILY_SYMS,...BASE_SYMS];
+    how=`Each square is one 0.25° IMD cell (about 27 km across). Its colour is the model's chance that the cell receives ${amt} mm or more on this IMD day (08:30 to 08:30 IST). ${rampHow}. ${boxHow(t)}. Rings show where IMD actually measured heavy rain, so you can compare the prediction with what happened.`;}
   else if(L==='rH'||L==='rV'){const kind=L==='rH'?'extreme-rain':'cloudburst-type';title=`How unusual the day is (${L==='rH'?'extreme':'cloudburst-type'} rain)`;unit='Percentile among the cell\'s days in the same month';rows=relRows();syms=[...DAILY_SYMS,...BASE_SYMS];
-    how=`This layer asks how unusual today is for each place. The model's ${kind} probability for the day is ranked against all days in the same month for that same cell (2001–2025). The darkest cells are in their top 0.5% of days. It helps in valley cells such as Kullu and Manali, where daily probabilities stay low because a cloudburst covers only a small part of a 27 km cell.`;}
+    how=`This layer asks how unusual today is for each place. The model's ${kind} probability for the day is ranked against all days in the same month for that same cell (2001–2025). The lighter the square, the more unusual the day; the lightest squares are in their top 0.5% of days. It helps in valley cells such as Kullu and Manali, where daily probabilities stay low because a cloudburst covers only a small part of a 27 km cell.`;}
   else if(L==='rain'){title='Observed rainfall (IMD gridded)';unit='mm per IMD day · IMD intensity category';rows=rainRows();syms=[...DAILY_SYMS.filter(s=>!s[0].startsWith('ring')),...BASE_SYMS];
     how='What actually fell, in the India Meteorological Department\'s official intensity categories. Heavy (64.5 mm or more) and very heavy (115.6 mm or more) are the two events the models predict.';}
   else{const cb=L==='zoneCB';title=cb?'Cloudburst-type rain risk zone':'Extreme-rain risk zone';unit='Square\'s average chance vs the basin average';rows=[[zoneColor('High'),'High · 1.5× basin average or more'],[zoneColor('Moderate'),'Moderate · 0.75–1.5×'],[zoneColor('Low'),'Low · under 0.75×']];syms=BASE_SYMS;
@@ -521,7 +529,7 @@ function drawSeason(){const S=seasonIdx(),t=seasonTarget(),cut=t==='h'?645:1156,
   $('#seasonh').textContent=`Season ${$('#year').value} · ${kind} rain (≥${amt} mm) · ${state.mode==='same'?'same-day':'1-day-ahead'} model`;
   $('#seasonnote').textContent=`Bars: squares where IMD measured ${amt} mm or more that day. Line: how many such squares the model expected (the sum of its chances). When the line rises with the bars, the model saw the event coming. Click a day to open it.`;
   seasonScore();if(seasonChart)seasonChart.destroy();
-  seasonChart=new Chart($('#season'),{data:{labels,datasets:[{type:'bar',label:`Squares with ≥${amt} mm (IMD)`,data:obs,backgroundColor:css('--z-mod'),borderRadius:2,barPercentage:1,categoryPercentage:.9},{type:'line',label:'Squares the model expected',data:pred,borderColor:css('--p5'),borderWidth:1.6,pointRadius:0,tension:.2}]},
+  seasonChart=new Chart($('#season'),{data:{labels,datasets:[{type:'bar',label:`Squares with ≥${amt} mm (IMD)`,data:obs,backgroundColor:css('--z-mod'),borderRadius:2,barPercentage:1,categoryPercentage:.9},{type:'line',label:'Squares the model expected',data:pred,borderColor:css('--cold'),borderWidth:1.6,pointRadius:0,tension:.2}]},
     plugins:[markLine],
     options:{animation:false,responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},onClick:(e,els)=>{if(els.length){setDay(S[els[0].index][1]);}},
       plugins:{markLine:{index:-1},legend:{position:'top',align:'start',labels:{color:css('--ink-2'),boxWidth:10,font:{size:10}}},tooltip:{callbacks:{title:it=>dates[S[it[0].dataIndex][1]],label:it=>`${it.dataset.label}: ${it.datasetIndex?it.raw.toFixed(1):it.raw}`}}},
@@ -587,8 +595,8 @@ function runSim(){SL.forEach(([k,,u])=>$('#o-'+k).textContent=(u==='×'?sv(k).to
    <div><b>${(Math.max(...simRes.map(r=>r.sim))*100).toFixed(1)}%</b><span>Highest simulated cell probability</span></div><div><b>${fmt(Math.max(...simRes.map(r=>r.obs)))} mm</b><span>What IMD actually observed on the base day</span></div>
    <div style="grid-column:1/-1"><span>Model: XGBoost (${model.trees.length} trees, trained 2001–2018 on GPU). Browser and Python predictions agree to within ${model.maxErr.toExponential(1)}.</span></div>`;
   const amt=T==='heavy'?'64.5':'115.6';
-  setLegend(simLegendBox,`Simulated chance of ${T==='heavy'?'extreme':'cloudburst-type'} rain (≥${amt} mm/day)`,probRows(model.threshold),[['bold',`Above decision threshold (${pct(model.threshold*100)}%)`],...BASE_SYMS.slice(1)],'XGBoost probability after your changes');
-  $('#simlegend').innerHTML=`<p class="howto"><b>How to read this map.</b> Colours show the model's chance of ${amt} mm or more in each cell after your slider changes; darker blue means more likely, and a bold outline means the cell would be flagged. Hover a cell to see the base-day value, the simulated value and what IMD actually measured. Move one slider at a time to see which ingredient matters most.</p>`;}
+  setLegend(simLegendBox,`Simulated chance of ${T==='heavy'?'extreme':'cloudburst-type'} rain (≥${amt} mm/day)`,probRows(model.threshold),[boxSym(model.threshold,'square flagged Yes'),...BASE_SYMS.slice(1)],`${RAMP_NOTE} · XGBoost probability after your changes`);
+  $('#simlegend').innerHTML=`<p class="howto"><b>How to read this map.</b> Colours show the model's chance of ${amt} mm or more in each cell after your slider changes. ${rampHow}. ${boxHow(model.threshold,'the square would be flagged Yes')}. Hover a cell to see the base-day value, the simulated value and what IMD actually measured. Move one slider at a time to see which ingredient matters most.</p>`;}
 $('#sliders').oninput=runSim;$('#simday').onchange=runSim;$('#simreset').onclick=()=>{SL.forEach(([k,,,,,,v])=>$('#s-'+k).value=v);runSim();};
 $('#st-h').onclick=()=>{state.simTarget='heavy';$('#st-h').setAttribute('aria-pressed',true);$('#st-v').setAttribute('aria-pressed',false);runSim();};
 $('#st-v').onclick=()=>{state.simTarget='very_heavy';$('#st-v').setAttribute('aria-pressed',true);$('#st-h').setAttribute('aria-pressed',false);runSim();};
@@ -738,8 +746,8 @@ function drawForecast(){const [ds,i]=fCur(),d=ds[i],A=FCL.alarm,ink=css('--ink')
     const c=FCL.cells[k];if(d.dir[k]!=null)L_.marker(c,{icon:arrowIcon(d.dir[k],12+Math.min(22,(d.ivt[k]||0)/30)),interactive:false,keyboard:false}).addTo(fArrows);
     if(d.rain&&d.rain[k]!=null&&d.rain[k]>=64.5)L_.circleMarker(c,{radius:d.rain[k]>=115.6?9:6,fill:false,color:css('--obs'),weight:2.2,interactive:false}).addTo(fObs);});
   setLegend(fLegend,isC?'Forecast chance of cloudburst-type rain (≥115.6 mm/day)':'Forecast chance of extreme rain (≥64.5 mm/day)',probRows(thr),
-    [['bold',`Forecast Yes: chance at or above the alarm level (${pct(thr*100)}%)`],['arrow','Forecast moisture transport (longer = stronger)'],...(d.rain?[['ring','IMD measured ≥64.5 mm'],['ring2','IMD measured ≥115.6 mm']]:[]),['basin','Beas basin boundary']],'ML probability from the ECMWF forecast');
-  $('#flegend').innerHTML=`<p class="howto"><b>How to read this forecast.</b> The weather forecast for each 27 km square (water vapour, moisture transport, instability, temperature, humidity, pressure) goes into a machine-learning model trained on 2001–2016 monsoons. Darker blue means a higher chance; a bold outline means the forecast says Yes. Use the day buttons to step through the coming days. ${d.rain?'Rings show where IMD actually measured heavy rain that day.':''}</p>`;
+    [boxSym(thr,'forecast says Yes'),['arrow','Forecast moisture transport (longer = stronger)'],...(d.rain?[['ring','IMD measured ≥64.5 mm'],['ring2','IMD measured ≥115.6 mm']]:[]),['basin','Beas basin boundary']],`${RAMP_NOTE} · ML probability from the ECMWF forecast`);
+  $('#flegend').innerHTML=`<p class="howto"><b>How to read this forecast.</b> The weather forecast for each 27 km square (water vapour, moisture transport, instability, temperature, humidity, pressure) goes into a machine-learning model trained on 2001–2016 monsoons. ${rampHow}. ${boxHow(thr,'the forecast says Yes for that square')}. Use the day buttons to step through the coming days. ${d.rain?'Rings show where IMD actually measured heavy rain that day.':''}</p>`;
   const verdict=(cls,label,arr,th,cut)=>{const yes=arr.map((p,k)=>p!=null&&p>=th),n=yes.filter(Boolean).length,mx=Math.max(...arr.filter(v=>v!=null)),km=arr.indexOf(mx);
     let det=`Alarm level ${pct(th*100)}% · highest chance ${fmt1(mx)} (${FCD.areas[km]})`;
     if(d.rain){const o=d.rain.map(r=>r!=null&&r>=cut),no=o.filter(Boolean).length,h=o.filter((v,k)=>v&&yes[k]).length;det+=` · IMD measured it in ${no} square${no===1?'':'s'} · correct ${h}, missed ${no-h}, false alarms ${n-h}`;}
